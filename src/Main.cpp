@@ -10,6 +10,9 @@
 #include <model_loading/model.h>
 #include <filesystem.h>
 
+#include <SFML/Audio.hpp>
+#include <SFML/OpenGL.hpp>
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -87,6 +90,14 @@ int main()
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Audio ambient
+    sf::Music music;
+    music.openFromFile(FileSystem::getPath("resources/audio/NighttimeForest.mp3"));
+
+    music.setLoop(true); // Repeat Music
+    music.setVolume(30.0f);
+    music.play();
 
     // render loop
     // -----------
