@@ -18,7 +18,7 @@
 #include <iostream>
 
 // callback functions
-void processInput(sf::Window& window, const Model& model);
+void processInput(sf::Window& window);
 void scroll_callback(sf::Window& window, double xoffset, double yoffset);
 
 // settings
@@ -37,62 +37,36 @@ float lastFrame = 0.0f;
 
 int main()
 {
-    /*
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // create a window
+    sf::RenderWindow window( sf::VideoMode(800, 600), "Forgotten-Meadows", sf::Style::Default, sf::ContextSettings(24));
+    window.setFramerateLimit(60);
+    window.setActive(true);
+    window.setMouseCursorGrabbed(true);
+    window.setMouseCursorVisible(false);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    // initialize OpenGL
+    if (!gladLoadGLLoader((GLADloadproc)sf::Context::getFunction)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(false);
-
-    // configure global opengl state
-    // -----------------------------
+    // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
 
     // build and compile shaders
-    // -------------------------
     Shader ourShader("model_loading.vs", "model_loading.fs");
 
+
     // load models
-    // -----------
-    Model ourModel(FileSystem::getPath("resources/models/casa.gltf"));
+    Model ourModel(FileSystem::getPath("/resources/models/casa.gltf"));
 
 
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // shader configuration
+    // --------------------
+    ourShader.use();
+    ourShader.setInt("material.diffuse", 0);
 
+    
     // Audio ambient
     sf::Music music;
     music.openFromFile(FileSystem::getPath("resources/audio/NighttimeForest.mp3"));
@@ -101,55 +75,89 @@ int main()
     music.setVolume(30.0f);
     music.play();
 
+
+    sf::Clock clock;
+
+
     // render loop
-    // -----------
-    while (!glfwWindowShouldClose(window))
+    while (window.isOpen())
     {
+
+
         // per-frame time logic
-        // --------------------
-        float currentFrame = static_cast<float>(glfwGetTime());
+        float currentFrame = static_cast<float>(clock.getElapsedTime().asSeconds());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // input
-        // -----
+        //input
         processInput(window);
 
         // render
-        // ------
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
-        ourShader.use();
-
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
+        // swap buffers and poll IO events
+        window.display();
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+
+            if (event.type == sf::Event::Resized)
+            {
+                glViewport(0, 0, event.size.width, event.size.height);
+
+            }
+
+            if (event.type == sf::Event::MouseMoved)
+
+            {
+                sf::Vector2i center(window.getSize().x / 2, window.getSize().y / 2);
+
+                float xoffset = sf::Mouse::getPosition(window).x - (float)center.x;
+                float yoffset = (float)center.y - sf::Mouse::getPosition(window).y;
+
+                camera.ProcessMouseMovement(xoffset, yoffset);
+
+                sf::Mouse::setPosition(sf::Vector2<int>((int)window.getSize().x / 2, (int)window.getSize().y / 2), window);
+                //mouse_callback(window, event.mouseMove.x, event.mouseMove.y);
+
+            }
+
+            if (event.type == sf::Event::MouseWheelScrolled)
+                scroll_callback(window, event.mouseWheelScroll.delta, 0);
+
+
+
+        }
+
+
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
-    */
+
+
     return 0;
 }
-void processInput(sf::Window& window, const Model& model)
+
+
+void processInput(sf::Window& window)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         window.close();
@@ -168,7 +176,7 @@ void processInput(sf::Window& window, const Model& model)
     
 }
 
-void scroll_callback(sf::RenderWindow& window, double xoffset, double yoffset)
+void scroll_callback(sf::Window& window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
