@@ -96,13 +96,13 @@ elseif(APPLE)
 endif(WIN32)
 
 file(GLOB SHADERS
-             "resources/shaders/*.vs"
              "resources/shaders/*.frag"
-             "resources/shaders/*.fs"
              "resources/shaders/*.tcs"
              "resources/shaders/*.tes"
              "resources/shaders/*.gs"
              "resources/shaders/*.cs"
+             "resources/shaders/*.fs"
+             "resources/shaders/*.vs"
     )
 
 # copy dlls
