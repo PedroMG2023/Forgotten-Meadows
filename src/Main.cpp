@@ -26,7 +26,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(5.0f, 0.8f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -108,11 +108,32 @@ int main()
     };
 
     // positions of the point lights
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3(7.0f,  20.0f,  2.0f),
-        glm::vec3(20.3f, 1.3f, -4.0f),
-        glm::vec3(-4.0f,  1.0f, -12.0f),
-        glm::vec3(0.0f,  4.0f, -3.0f)
+    glm::vec3 steetlight_position[] = {
+        //left to right
+        glm::vec3(75.f, 4.0f, -64.44f),
+        glm::vec3(75.f,  4.0f, -40.34f),
+        glm::vec3(75.f,  4.0f, -16.43f),
+        glm::vec3(75.f,  4.0f,  8.32f),
+        glm::vec3(75.f,  4.0f, 32.27f),
+        glm::vec3(75.f,  4.0f, 56.32f),
+
+        //Torch light
+        //church
+        glm::vec3(-51.87f,  2.0f,  -4.66f),
+        //void
+        glm::vec3(-32.30f,  2.0f, 47.72f),
+        //grenn
+        glm::vec3(-7.72f,  2.0f, -57.33f),
+        //bathroom
+        glm::vec3(4.62f,  2.0f,  -0.39f),
+        //
+        glm::vec3(16.57,  2.0f, 38.64f),
+        //
+        glm::vec3(56.32f,  2.0f, -0.08f),
+        //green
+        glm::vec3(35.10f,  2.0f, -2.8f),
+        //campfire
+        glm::vec3(-5.26f,  2.0f, -32.33f)
     };
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
@@ -143,7 +164,7 @@ int main()
 
 
     // load models
-    Model ourModel(FileSystem::getPath("/resources/models/EscenaMejorada.gltf"));
+    Model ourModel(FileSystem::getPath("/resources/models/scene.gltf"));
 
 
     // shader configuration
@@ -186,21 +207,31 @@ int main()
         ourShader.setFloat("material.shininess", 32.0f);
 
         // directional light
-        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        ourShader.setVec3("dirLight.direction", -0.2f, 2.0f, -0.3f);
+        ourShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
         ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
-        // point light 1
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 6; i++)
         {
-            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[0]);
-            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 0.05f, 0.05f, 0.05f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", steetlight_position[i]);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 0.678f, 0.847f, 0.902f);
             ourShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 0.3f, 0.3f, 0.3f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
             ourShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
-            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.14f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.07f);
+        }
+
+        for (int i = 6; i < 14; i++)
+        {
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", steetlight_position[i]);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 1.0f, 0.647f, 0.0f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.22f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.20f);
         }
         
 
@@ -236,7 +267,7 @@ int main()
         light_shader.setMat4("view", view);
 
         // we now draw as many light bulbs as we have point lights.
-        glBindVertexArray(lightCubeVAO);
+       /* glBindVertexArray(lightCubeVAO);
         for (unsigned int i = 0; i < 4; i++)
         {
             model = glm::mat4(1.0f);
@@ -244,7 +275,7 @@ int main()
             model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
             light_shader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        }*/
 
         // swap buffers and poll IO events
         window.display();
