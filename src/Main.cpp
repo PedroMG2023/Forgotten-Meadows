@@ -136,7 +136,7 @@ int main()
 
 
     // load models
-    Model ourModel(FileSystem::getPath("/resources/models/casa.gltf"));
+    Model ourModel(FileSystem::getPath("/resources/models/EscenaMejorada.gltf"));
 
 
     // shader configuration
@@ -175,12 +175,15 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         ourShader.use();
-        ourShader.setVec3("light.position", cubePositions[0]);
+        ourShader.setVec3("light.position", camera.Position);
+        ourShader.setVec3("light.direction", camera.Front);
+        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
         ourShader.setVec3("viewPos", camera.Position);
 
         // light properties
-        ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        ourShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+        ourShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
         ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
         ourShader.setFloat("light.constant", 1.0f);
         ourShader.setFloat("light.linear", 0.09f);
@@ -212,7 +215,7 @@ int main()
         light_shader.setMat4("model", model);
 
         glBindVertexArray(lightCubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // swap buffers and poll IO events
         window.display();
