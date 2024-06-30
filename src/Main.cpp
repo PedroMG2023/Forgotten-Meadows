@@ -107,6 +107,13 @@ int main()
        glm::vec3(55.0f, 2.0f,  0.0f),
     };
 
+    // positions of the point lights
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3(7.0f,  20.0f,  2.0f),
+        glm::vec3(20.3f, 1.3f, -4.0f),
+        glm::vec3(-4.0f,  1.0f, -12.0f),
+        glm::vec3(0.0f,  4.0f, -3.0f)
+    };
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &VBO);
@@ -175,22 +182,39 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         ourShader.use();
-        ourShader.setVec3("light.position", camera.Position);
-        ourShader.setVec3("light.direction", camera.Front);
-        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
         ourShader.setVec3("viewPos", camera.Position);
-
-        // light properties
-        ourShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
-        ourShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
-        ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("light.constant", 1.0f);
-        ourShader.setFloat("light.linear", 0.09f);
-        ourShader.setFloat("light.quadratic", 0.032f);
-
-        // material properties
         ourShader.setFloat("material.shininess", 32.0f);
+
+        // directional light
+        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+        // point light 1
+        for (int i = 0; i < 4; i++)
+        {
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[0]);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 0.05f, 0.05f, 0.05f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 0.3f, 0.3f, 0.3f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+        }
+        
+
+        // spotLight
+        ourShader.setVec3("spotLight.position", camera.Position);
+        ourShader.setVec3("spotLight.direction", camera.Front);
+        ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        ourShader.setFloat("spotLight.constant", 1.0f);
+        ourShader.setFloat("spotLight.linear", 0.09f);
+        ourShader.setFloat("spotLight.quadratic", 0.032f);
+        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
 
         // view/projection transformations
@@ -206,16 +230,21 @@ int main()
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
+        // also draw the lamp object(s)
         light_shader.use();
         light_shader.setMat4("projection", projection);
         light_shader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[0]);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        light_shader.setMat4("model", model);
 
+        // we now draw as many light bulbs as we have point lights.
         glBindVertexArray(lightCubeVAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 4; i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, pointLightPositions[i]);
+            model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+            light_shader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // swap buffers and poll IO events
         window.display();
