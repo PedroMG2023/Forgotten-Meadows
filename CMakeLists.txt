@@ -103,6 +103,8 @@ file(GLOB SHADERS
              "resources/shaders/*.cs"
              "resources/shaders/*.fs"
              "resources/shaders/*.vs"
+             "resources/shaders/skybox.vs"
+             "resources/shaders/skybox.fs"
     )
 
 # copy dlls
