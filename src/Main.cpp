@@ -129,7 +129,7 @@ int main()
         FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.up.png"), // Arriba
         FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.down.png"), // Abajo
         FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.front.png"), // Frente
-        FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.back.png")  // Atrás
+        FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.back.png")  // Atrï¿½s
 
     };
     unsigned int cubemapTexture = loadCubemap(faces);
@@ -253,6 +253,13 @@ int main()
     ourShader.setInt("material.diffuse", 0);
 
 
+    //Steps Audio
+    sf::Music steps;
+    steps.openFromFile(FileSystem::getPath("resources/audio/Grass_Footsteps.mp3"));
+
+    steps.setLoop(true);
+    steps.setVolume(40.0f);
+
     // Audio ambient
     sf::Music music;
     music.openFromFile(FileSystem::getPath("resources/audio/NighttimeForest.mp3"));
@@ -261,8 +268,9 @@ int main()
     music.setVolume(30.0f);
     music.play();
 
-
     sf::Clock clock;
+
+    
 
 
     // render loop
@@ -409,6 +417,10 @@ int main()
             if (event.type == sf::Event::MouseWheelScrolled)
                 scroll_callback(window, event.mouseWheelScroll.delta, 0);
 
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::W) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S) && !sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            {
+                steps.play();
+            }
         }
 
     }
