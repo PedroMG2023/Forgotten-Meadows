@@ -29,6 +29,7 @@ const unsigned int SCR_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(5.0f, 0.8f, 3.0f));
+
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -445,6 +446,8 @@ void processInput(sf::Window& window)
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
+    camera.Position.y = 2.0f;
+    
 }
 
 void scroll_callback(sf::Window& window, double xoffset, double yoffset)
