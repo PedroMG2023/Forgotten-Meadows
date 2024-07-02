@@ -18,11 +18,11 @@
 #include <iostream>
 
 // callback functions
-void processInput(sf::Window& window, const Model& model);
+void processInput(sf::Window& window, const Model& model, const Model& model2);
 void scroll_callback(sf::Window& window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 unsigned int loadCubemap(vector<std::string> faces);
-bool CheckCollision(const Camera& camera, const Model& model);
+bool CheckCollision(const Camera& camera, const Model& model, bool val);
 void resolveCollision(Camera& camera, const Model& model);
 
 
@@ -248,7 +248,8 @@ int main()
 
 
     // load models
-    Model ourModel(FileSystem::getPath("/resources/models/scene.gltf"));
+    Model ourModel(FileSystem::getPath("/resources/models/SceneWSM.gltf"));
+    Model ourModel2(FileSystem::getPath("/resources/models/SomeModels.gltf"));
 
 
     // shader configuration
@@ -266,6 +267,7 @@ int main()
     sf::Sound sound_ambient;
     sound_ambient.setBuffer(buffer);
     sound_ambient.setVolume(25.f);
+    sound_ambient.setLoop(true);
     sound_ambient.play();
 
     //Steps Audio
@@ -275,7 +277,7 @@ int main()
     }
 
     sf::Sound sound_steps;
-    sound_steps.setBuffer(buffer);
+    sound_steps.setBuffer(buffer2);
     sound_steps.setVolume(40.0f);
 
     sf::Clock clock;
@@ -293,7 +295,7 @@ int main()
         lastFrame = currentFrame;
 
         //input
-        processInput(window, ourModel);
+        processInput(window, ourModel, ourModel2);
 
         // render
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -352,12 +354,18 @@ int main()
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-        // render the loaded model
+        // render the loaded models
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
+
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, 0.0f));
+        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));
+        ourShader.setMat4("model", model2);
+        ourModel2.Draw(ourShader);
 
         // also draw the lamp object(s)
         light_shader.use();
@@ -461,13 +469,17 @@ void resolveCollision(Camera& camera, const Model& model) {
     }
 }
 
-bool CheckCollision(const Camera& camera, const Model& model) {
+bool CheckCollision(const Camera& camera, const Model& model, bool val) {
     glm::vec3 cameraPos = camera.Position;
 
     for (const auto& mesh : model.meshes)
     {
         glm::vec3 minBox = mesh.boundingBox.min;
         glm::vec3 maxBox = mesh.boundingBox.max;
+
+        if (val) {
+            maxBox.y = maxBox.y + camera.Position.y;
+        }
 
         if (cameraPos.x >= minBox.x && cameraPos.x <= maxBox.x &&
             cameraPos.y >= minBox.y && cameraPos.y <= maxBox.y &&
@@ -482,7 +494,7 @@ bool CheckCollision(const Camera& camera, const Model& model) {
 }
 
 
-void processInput(sf::Window& window, const Model& model)
+void processInput(sf::Window& window, const Model& model, const Model& model2)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         window.close();
@@ -492,25 +504,25 @@ void processInput(sf::Window& window, const Model& model)
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             glm::vec3 front = camera.Front;
             glm::vec3 newPos = camera.Position + front * camera.MovementSpeed * deltaTime;
-            if (!CheckCollision(newPos, model))
+            if (!CheckCollision(newPos, model, false) && !CheckCollision(newPos, model2, true))
                 camera.Position = newPos;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             glm::vec3 front = camera.Front;
             glm::vec3 newPos = camera.Position - front * camera.MovementSpeed * deltaTime;
-            if (!CheckCollision(newPos, model))
+            if (!CheckCollision(newPos, model, false) && !CheckCollision(newPos, model2, true))
                 camera.Position = newPos;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
             glm::vec3 right = camera.Right;
             glm::vec3 newPos = camera.Position - right * camera.MovementSpeed * deltaTime;
-            if (!CheckCollision(newPos, model))
+            if (!CheckCollision(newPos, model, false) && !CheckCollision(newPos, model2, true))
                 camera.Position = newPos;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
             glm::vec3 right = camera.Right;
             glm::vec3 newPos = camera.Position + right * camera.MovementSpeed * deltaTime;
-            if (!CheckCollision(newPos, model))
+            if (!CheckCollision(newPos, model, false) && !CheckCollision(newPos, model2, true))
                 camera.Position = newPos;
         }
 
