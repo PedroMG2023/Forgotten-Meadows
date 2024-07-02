@@ -18,10 +18,13 @@
 #include <iostream>
 
 // callback functions
-void processInput(sf::Window& window);
+void processInput(sf::Window& window, const Model& model);
 void scroll_callback(sf::Window& window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 unsigned int loadCubemap(vector<std::string> faces);
+bool CheckCollision(const Camera& camera, const Model& model);
+void resolveCollision(Camera& camera, const Model& model);
+
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -254,20 +257,26 @@ int main()
     ourShader.setInt("material.diffuse", 0);
 
 
-    //Steps Audio
-    sf::Music steps;
-    steps.openFromFile(FileSystem::getPath("resources/audio/Grass_Footsteps.mp3"));
-
-    steps.setLoop(true);
-    steps.setVolume(40.0f);
-
     // Audio ambient
-    sf::Music music;
-    music.openFromFile(FileSystem::getPath("resources/audio/NighttimeForest.mp3"));
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile(FileSystem::getPath("resources/audio/NighttimeForest.mp3"))) {
+        return -1;
+    }
 
-    music.setLoop(true); // Repeat Music
-    music.setVolume(30.0f);
-    music.play();
+    sf::Sound sound_ambient;
+    sound_ambient.setBuffer(buffer);
+    sound_ambient.setVolume(25.f);
+    sound_ambient.play();
+
+    //Steps Audio
+    sf::SoundBuffer buffer2;
+    if (!buffer2.loadFromFile(FileSystem::getPath("resources/audio/Grass_Footsteps.mp3"))) {
+        return -1;
+    }
+
+    sf::Sound sound_steps;
+    sound_steps.setBuffer(buffer);
+    sound_steps.setVolume(40.0f);
 
     sf::Clock clock;
 
@@ -284,7 +293,7 @@ int main()
         lastFrame = currentFrame;
 
         //input
-        processInput(window);
+        processInput(window, ourModel);
 
         // render
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -420,7 +429,7 @@ int main()
 
             if (!sf::Keyboard::isKeyPressed(sf::Keyboard::W) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S) && !sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             {
-                steps.play();
+                sound_steps.play();
             }
         }
 
@@ -428,23 +437,100 @@ int main()
     return 0;
 }
 
+void resolveCollision(Camera& camera, const Model& model) {
+    glm::vec3 cameraPos = camera.Position;
 
-void processInput(sf::Window& window)
+    for (const auto& mesh : model.meshes)
+    {
+        glm::vec3 minBox = mesh.boundingBox.min;
+        glm::vec3 maxBox = mesh.boundingBox.max;
+
+        if (camera.Position.x >= minBox.x && camera.Position.x <= maxBox.x &&
+            camera.Position.y >= minBox.y && camera.Position.y <= maxBox.y &&
+            camera.Position.z >= minBox.z && camera.Position.z <= maxBox.z)
+        {
+            glm::vec3 collisionVector = (minBox + maxBox) * 0.5f - camera.Position;
+
+            collisionVector = glm::normalize(collisionVector);
+
+            glm::vec3 closestPoint = glm::clamp(camera.Position, minBox, maxBox);
+            camera.Position = closestPoint + collisionVector * 0.08f; 
+            break;
+
+        }
+    }
+}
+
+bool CheckCollision(const Camera& camera, const Model& model) {
+    glm::vec3 cameraPos = camera.Position;
+
+    for (const auto& mesh : model.meshes)
+    {
+        glm::vec3 minBox = mesh.boundingBox.min;
+        glm::vec3 maxBox = mesh.boundingBox.max;
+
+        if (cameraPos.x >= minBox.x && cameraPos.x <= maxBox.x &&
+            cameraPos.y >= minBox.y && cameraPos.y <= maxBox.y &&
+            cameraPos.z >= minBox.z && cameraPos.z <= maxBox.z)
+        {
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
+
+void processInput(sf::Window& window, const Model& model)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         window.close();
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (true) {
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            glm::vec3 front = camera.Front;
+            glm::vec3 newPos = camera.Position + front * camera.MovementSpeed * deltaTime;
+            if (!CheckCollision(newPos, model))
+                camera.Position = newPos;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            glm::vec3 front = camera.Front;
+            glm::vec3 newPos = camera.Position - front * camera.MovementSpeed * deltaTime;
+            if (!CheckCollision(newPos, model))
+                camera.Position = newPos;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            glm::vec3 right = camera.Right;
+            glm::vec3 newPos = camera.Position - right * camera.MovementSpeed * deltaTime;
+            if (!CheckCollision(newPos, model))
+                camera.Position = newPos;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            glm::vec3 right = camera.Right;
+            glm::vec3 newPos = camera.Position + right * camera.MovementSpeed * deltaTime;
+            if (!CheckCollision(newPos, model))
+                camera.Position = newPos;
+        }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-        camera.ProcessKeyboard(LEFT, deltaTime);
+    }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+    else {
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            camera.ProcessKeyboard(FORWARD, deltaTime);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            camera.ProcessKeyboard(LEFT, deltaTime);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    }
 
     camera.Position.y = 2.0f;
     

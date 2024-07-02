@@ -37,6 +37,12 @@ struct Texture {
     string path;
 };
 
+// BoundingBox definition
+struct BoundingBox {
+    glm::vec3 min; // Maximum point of the collision box
+    glm::vec3 max; // Minimum point of the collision box
+};
+
 class Mesh {
 public:
     // mesh Data
@@ -44,15 +50,47 @@ public:
     vector<unsigned int> indices;
     vector<Texture>      textures;
     unsigned int VAO;
+    BoundingBox boundingBox;
+
+    // Transformations
+    glm::vec3 position;
+    glm::vec3 rotationAxis;
+    float rotationAngle;
+    glm::vec3 scale;
+
+    BoundingBox calculateBoundingBox() const
+    {
+        glm::vec3 minPos = glm::vec3(std::numeric_limits<float>::max());
+        glm::vec3 maxPos = glm::vec3(std::numeric_limits<float>::lowest());
+
+        for (const auto& vertex : vertices)
+        {
+            minPos = glm::min(minPos, vertex.Position);
+            maxPos = glm::max(maxPos, vertex.Position);
+        }
+
+        BoundingBox box;
+        box.min = minPos;
+        box.max = maxPos;
+
+        return box;
+    }
 
     // constructor
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures,
+        glm::vec3 position = glm::vec3(0.0f), glm::vec3 rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f), float rotationAngle = 0.0f,
+        glm::vec3 scale = glm::vec3(1.0f))
     {
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
+        this->position = position;
+        this->rotationAxis = rotationAxis;
+        this->rotationAngle = rotationAngle;
+        this->scale = scale;
 
         // now that we have all the required data, set the vertex buffers and its attribute pointers.
+        this->boundingBox = calculateBoundingBox();
         setupMesh();
     }
 
