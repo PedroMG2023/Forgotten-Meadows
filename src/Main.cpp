@@ -41,6 +41,9 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool flashlightOn = false;
+bool fKeyPressed = false;
+
 int main()
 {
     // create a window
@@ -63,7 +66,7 @@ int main()
 
     // build and compile shaders
     Shader ourShader("model_loading.vs", "model_loading.fs");
-    Shader light_shader("light_cube.vs", "light_cube.fs");
+    //Shader light_shader("light_cube.vs", "light_cube.fs");
     Shader skyboxShader("skybox.vs", "skybox.fs");
 
 
@@ -143,63 +146,22 @@ int main()
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+    glm::vec3 street_light_bad[] =
+    {
+        glm::vec3(75.f,  4.0f, -40.34f),
+        glm::vec3(75.f, 4.0f, -64.44f),
+        glm::vec3(75.f,  4.0f, 56.32f),
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-    };
-
-    glm::vec3 cubePositions[] = {
-       glm::vec3(55.0f, 2.0f,  0.0f),
     };
 
     // positions of the point lights
     glm::vec3 steetlight_position[] = {
         //left to right
-        glm::vec3(75.f, 4.0f, -64.44f),
         glm::vec3(75.f,  4.0f, -40.34f),
         glm::vec3(75.f,  4.0f, -16.43f),
         glm::vec3(75.f,  4.0f,  8.32f),
         glm::vec3(75.f,  4.0f, 32.27f),
-        glm::vec3(75.f,  4.0f, 56.32f),
 
         //Torch light
         //church
@@ -219,33 +181,7 @@ int main()
         //campfire
         glm::vec3(-5.26f,  2.0f, -32.33f)
     };
-    unsigned int VBO, cubeVAO;
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(cubeVAO);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-
-    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-    unsigned int lightCubeVAO;
-    glGenVertexArrays(1, &lightCubeVAO);
-    glBindVertexArray(lightCubeVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
+   
 
     // load models
     Model ourModel(FileSystem::getPath("/resources/models/SceneWSM.gltf"));
@@ -285,8 +221,6 @@ int main()
     sf::Clock clock;
 
     
-
-
     // render loop
     while (window.isOpen())
     {
@@ -337,17 +271,84 @@ int main()
         }
         
 
+        for (int i = 0; i < 4; i++)
+        {
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", steetlight_position[i]);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 0.678f, 0.847f, 0.902f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.14f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.07f);
+        }
+
+        for (int i = 4; i < 14; i++)
+        {
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", steetlight_position[i]);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 1.0f, 0.647f, 0.0f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.22f);
+            ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.20f);
+        }
+
+        int randomNumber = rand();
+        for (int i = 0; i < 2; i++)
+        {
+            if (randomNumber % 2 == 0) {
+                ourShader.setVec3("pointLights[" + std::to_string(1) + "].position", street_light_bad[i]);
+                ourShader.setVec3("pointLights[" + std::to_string(1) + "].ambient", 0.678f, 0.847f, 0.902f);
+                ourShader.setVec3("pointLights[" + std::to_string(1) + "].diffuse", 0.8f, 0.8f, 0.8f);
+                ourShader.setVec3("pointLights[" + std::to_string(1) + "].specular", 1.0f, 1.0f, 1.0f);
+                ourShader.setFloat("pointLights[" + std::to_string(1) + "].constant", 1.0f);
+                ourShader.setFloat("pointLights[" + std::to_string(1) + "].linear", 0.35f);
+                ourShader.setFloat("pointLights[" + std::to_string(1) + "].quadratic", 0.44f);
+            }
+        }
+
+
         // spotLight
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::F)) {
+            if (!fKeyPressed) {
+                flashlightOn = !flashlightOn;
+                fKeyPressed = true;
+            }
+        }
+        else
+        {
+            fKeyPressed = false;
+        }
+
         ourShader.setVec3("spotLight.position", camera.Position);
         ourShader.setVec3("spotLight.direction", camera.Front);
         ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
         ourShader.setFloat("spotLight.constant", 1.0f);
         ourShader.setFloat("spotLight.linear", 0.09f);
         ourShader.setFloat("spotLight.quadratic", 0.032f);
         ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        if (flashlightOn) {
+            ourShader.setVec3("spotLight.position", camera.Position);
+            ourShader.setVec3("spotLight.direction", camera.Front);
+            ourShader.setVec3("spotLight.ambient", 0.1f, 0.1f, 0.1f);
+            ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+            ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+            ourShader.setFloat("spotLight.constant", 1.0f);
+            ourShader.setFloat("spotLight.linear", 0.09f);
+            ourShader.setFloat("spotLight.quadratic", 0.032f);
+            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        }
+        else {
+            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
+        }
 
 
         // view/projection transformations
@@ -378,13 +379,13 @@ int main()
         ourShader.setMat4("model", model3);
         ourModel3.Draw(ourShader);
 
-        // also draw the lamp object(s)
+        /*also draw the lamp object(s)
         light_shader.use();
         light_shader.setMat4("projection", projection);
         light_shader.setMat4("view", view);
 
         // we now draw as many light bulbs as we have point lights.
-       /* glBindVertexArray(lightCubeVAO);
+        glBindVertexArray(lightCubeVAO);
         for (unsigned int i = 0; i < 4; i++)
         {
             model = glm::mat4(1.0f);
