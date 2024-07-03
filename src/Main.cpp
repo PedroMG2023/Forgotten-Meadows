@@ -250,6 +250,7 @@ int main()
     // load models
     Model ourModel(FileSystem::getPath("/resources/models/SceneWSM.gltf"));
     Model ourModel2(FileSystem::getPath("/resources/models/SomeModels.gltf"));
+    Model ourModel3(FileSystem::getPath("/resources/models/blades.gltf"));
 
 
     // shader configuration
@@ -279,6 +280,7 @@ int main()
     sf::Sound sound_steps;
     sound_steps.setBuffer(buffer2);
     sound_steps.setVolume(40.0f);
+    sound_steps.setLoop(true);
 
     sf::Clock clock;
 
@@ -366,6 +368,15 @@ int main()
         model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));
         ourShader.setMat4("model", model2);
         ourModel2.Draw(ourShader);
+
+        glm::mat4 model3 = glm::mat4(1.0f);
+        model3 = glm::translate(model3, glm::vec3(-52.067f, 12.151f, 18.089f));
+        model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
+        static float angle = 0.0f;
+        angle += 1.0f;  // rotation velocity
+        model3 = glm::rotate(model3, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f));
+        ourShader.setMat4("model", model3);
+        ourModel3.Draw(ourShader);
 
         // also draw the lamp object(s)
         light_shader.use();
