@@ -44,6 +44,9 @@ float lastFrame = 0.0f;
 bool flashlightOn = false;
 bool fKeyPressed = false;
 
+bool moonVisible = false;
+bool sunVisible = false;
+
 int main()
 {
     // create a window
@@ -178,8 +181,11 @@ int main()
         glm::vec3(56.32f,  2.0f, -0.08f),
         //green
         glm::vec3(35.10f,  2.0f, -2.8f),
+        //
+        glm::vec3(-5.26f,  2.0f, -32.33f),
         //campfire
-        glm::vec3(-5.26f,  2.0f, -32.33f)
+
+        glm::vec3(-7.f,  1.0f, 24.33f)
     };
    
 
@@ -187,6 +193,8 @@ int main()
     Model ourModel(FileSystem::getPath("/resources/models/SceneWSM.gltf"));
     Model ourModel2(FileSystem::getPath("/resources/models/SomeModels.gltf"));
     Model ourModel3(FileSystem::getPath("/resources/models/blades.gltf"));
+    Model model_moon(FileSystem::getPath("/resources/models/Moon.gltf"));
+    Model model_sun(FileSystem::getPath("/resources/models/Sun.gltf"));
 
 
     // shader configuration
@@ -242,11 +250,33 @@ int main()
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
-        // directional light
-        ourShader.setVec3("dirLight.direction", -0.2f, 2.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
-        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        if (moonVisible) {
+            ourShader.setVec3("dirLight.direction", -0.2f, 2.0f, -0.3f);
+            ourShader.setVec3("dirLight.ambient", 0.03f, 0.03f, 0.03f);
+            ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("dirLight.specular", 0.0f, 0.0f, 0.0f);
+
+            // Renderiza la luna
+            glm::mat4 model_m = glm::mat4(1.0f);
+            model_m = glm::translate(model_m, glm::vec3(camera.Position.x - 400.0f, 300.0f, camera.Position.z - 400.0f));
+            model_m = glm::scale(model_m, glm::vec3(1.5f, 1.5f, 1.5f));
+            ourShader.setMat4("model", model_m);
+            model_moon.Draw(ourShader);
+        }
+
+        if (sunVisible) {
+            ourShader.setVec3("dirLight.direction", -0.2f, 2.0f, -0.3f);
+            ourShader.setVec3("dirLight.ambient", 0.3f, 0.15f, 0.1f);
+            ourShader.setVec3("dirLight.diffuse", 0.2f, 0.1f, 0.1f);
+            ourShader.setVec3("dirLight.specular", 0.25f, 0.15f, 0.1f);
+
+            // Renderiza el sol
+            glm::mat4 model_s = glm::mat4(1.0f);
+            model_s = glm::translate(model_s, glm::vec3(camera.Position.x - 400.0f, 300.0f, camera.Position.z - 400.0f));
+            model_s = glm::scale(model_s, glm::vec3(1.0f, 1.0f, 1.0f));
+            ourShader.setMat4("model", model_s);
+            model_sun.Draw(ourShader);
+        }
 
         for (int i = 0; i < 6; i++)
         {
@@ -259,7 +289,7 @@ int main()
             ourShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.07f);
         }
 
-        for (int i = 6; i < 14; i++)
+        for (int i = 6; i < 15; i++)
         {
             ourShader.setVec3("pointLights[" + std::to_string(i) + "].position", steetlight_position[i]);
             ourShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", 1.0f, 0.647f, 0.0f);
@@ -510,6 +540,15 @@ void processInput(sf::Window& window, const Model& model, const Model& model2)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         window.close();
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::M)) {
+        moonVisible = true;
+        sunVisible = false;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::N)) {
+        sunVisible = true;
+        moonVisible = false;
+    }
 
     if (true) {
 
