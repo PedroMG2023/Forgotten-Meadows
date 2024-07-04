@@ -24,6 +24,19 @@ To run it you just need to open this downloaded repository in the IDE of your ch
 
 When you run the project you will see a main menu offering some options, to enter directly into the experience just choose the **play** option, but if what you want is to view the scene with another type of lighting and change the camera mode you can choose the second option of menu settings and to finish the execution just choose the **exit** option.
 
+![](https://i.ibb.co/w0YCrb8/1.png)
+![](https://i.ibb.co/hY9TKZs/2.png)
+![](https://i.ibb.co/2NtRpZ2/3.png)
+![](https://i.ibb.co/TgDym02/4.png)
+![](https://i.ibb.co/7X1h6WV/5.png)
+![](https://i.ibb.co/ysRCTqh/6.png)
+
+### **See the result in a youtube video**
+https://www.youtube.com/watch?v=jndCdiwaKEQ
+
+### **Constrols**
+You move with the **W A S D** keys and the camera with the **mouse**
+
 ### **Credits**
 
 - https://learnopengl.com
