@@ -3,6 +3,7 @@
 
 #include "Screen.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 //#include "Menu.h"
 #include <filesystem.h>
 #include <iostream>
@@ -16,6 +17,7 @@ enum MenuState { MAIN_MENU, OPTIONS_MENU };
 
 class MenuScreen : public Screen {
 public:
+
 	bool isActive[2];
 	MenuState currentState;
 	MenuState getCurrentState() { return currentState; }
@@ -27,13 +29,21 @@ public:
 	int GetPressedItem() { return selectedItemIndex; }
 
     MenuScreen(float width, float height){
-         
+		// Initialize the values of the variables
+
+		isPlaying = true;
+
 		isActive[0] = false;
 		isActive[1] = false;
 
 		triangleY = 0.325;
 		currentState = MAIN_MENU;	// Initialize the current state to the main menu
 		loadResources();
+
+		sound_ambient.setBuffer(buffer);
+		sound_ambient.setVolume(50.f);
+		sound_ambient.setLoop(true);
+		sound_ambient.play();
 
 		rectangulo.setPosition(0, 0);
 		rectangulo.setSize(sf::Vector2f(width / 2, height));
@@ -129,6 +139,8 @@ public:
 		optionsMenu[2].setString("Back");
 		optionsMenu[2].setCharacterSize(45);
 		optionsMenu[2].setPosition(width / 2 * 0.17, rectangulo.getSize().y * 0.64);
+
+
     }
 
 	void draw(sf::RenderWindow& window)
@@ -211,13 +223,17 @@ public:
 	}
 
 	bool loadResources() {
+
 		bool success = true;
 		success &= backgroundTexture.loadFromFile(FileSystem::getPath("resources/menu/images/Menu.png"));
 		success &= titleFont.loadFromFile(FileSystem::getPath("resources/menu/textFonts/Poppins-Regular.ttf"));
 		success &= font.loadFromFile(FileSystem::getPath("resources/menu/textFonts/Poppins-Regular.ttf"));
+		success &= buffer.loadFromFile(FileSystem::getPath("resources/audio/nostalgic-piano.mp3"));
+
 		if (!success) {
 			std::cerr << "Failed to load one or more resources" << std::endl;
 		}
+
 		return success;
 	}
 
@@ -237,6 +253,8 @@ public:
 			selectorTriangle.setPosition(getWindowWidth() * 0.12, rectangulo.getSize().y * triangleY);
 		}
 		else if (currentState == OPTIONS_MENU) {
+
+
 			// Reset the colors of the options menu items
 			for (int i = 0; i < MAX_NUMBER_OF_ITEMS; i++) {
 				menu[i].setFillColor(sf::Color(88, 98, 115)); // Color not selected
@@ -265,6 +283,11 @@ public:
 
     int run(sf::RenderWindow& window, Context &context) override {
 
+		if (!isPlaying) {
+			sound_ambient.setLoop(true);
+			sound_ambient.play();
+			isPlaying = true;
+		}
 		sf::Event event;
 
 		while (window.pollEvent(event))
@@ -291,6 +314,10 @@ public:
 							switch (GetPressedItem()) {
 							case 0:
 								//std::cout << "Play button has been pressed" << std::endl;
+								sound_ambient.setLoop(false);
+								sound_ambient.stop();
+								isPlaying = false;
+
 								if (context.SaveStates) {
 									window.popGLStates();
 								}
@@ -368,4 +395,9 @@ private:
     float triangleY;
     float scaleX;
     float scaleY;
+
+	// Audio ambient
+	sf::SoundBuffer buffer;
+	sf::Sound sound_ambient;
+	bool isPlaying;
 };

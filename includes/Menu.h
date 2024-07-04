@@ -1,5 +1,6 @@
 #pragma once
 #include "SFML/Graphics.hpp"
+#include "SFML/Audio.hpp"
 #define MAX_NUMBER_OF_ITEMS 3
 
 enum MenuState { MAIN_MENU, OPTIONS_MENU };
