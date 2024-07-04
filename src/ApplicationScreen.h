@@ -227,7 +227,7 @@ public:
 
         sf::Sound sound_ambient_night;
         sound_ambient_night.setBuffer(buffer);
-        sound_ambient_night.setVolume(0.f);
+        sound_ambient_night.setVolume(25.f);
         sound_ambient_night.setLoop(true);
         sound_ambient_night.play();
 
@@ -241,8 +241,8 @@ public:
         }
 
         sf::Sound sound_ambient_sunset;
-        sound_ambient_sunset.setBuffer(buffer);
-        sound_ambient_sunset.setVolume(0.f);
+        sound_ambient_sunset.setBuffer(buffer2);
+        sound_ambient_sunset.setVolume(100.f);
         sound_ambient_sunset.setLoop(true);
         sound_ambient_sunset.play();
 
@@ -261,12 +261,19 @@ public:
         sf::Clock clock;
 
         if (context.Sunset) {
-            sound_ambient_night.setVolume(0.f);
-            sound_ambient_sunset.setVolume(100.f);
+            sound_ambient_night.setLoop(false);
+            sound_ambient_night.stop();
+
+            sound_ambient_sunset.setLoop(true);
+            sound_ambient_sunset.play();
+
         }
         else {
-            sound_ambient_sunset.setVolume(0.f);
-            sound_ambient_night.setVolume(25.f);
+            sound_ambient_sunset.setLoop(false);
+            sound_ambient_sunset.stop();
+
+            sound_ambient_night.setLoop(true);
+            sound_ambient_night.play();
         }
 
         while (true) {
