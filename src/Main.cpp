@@ -4,10 +4,12 @@
 #include "ApplicationScreen.h"
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Screens");
+   
+    sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktopMode, ".", sf::Style::Fullscreen);
 
     std::vector<Screen*> screens;
-    screens.push_back(new MenuScreen());
+    screens.push_back(new MenuScreen(desktopMode.width, desktopMode.height));
     screens.push_back(new ApplicationScreen());
 
     int screenIndex = 0;

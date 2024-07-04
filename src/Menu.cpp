@@ -12,6 +12,7 @@ Menu::Menu(float width, float height)
 
 	triangleY = 0.325;
 	currentState = MAIN_MENU; // Initialize the current state to the main menu
+
 	loadResources();
 
 	rectangulo.setPosition(0, 0);
