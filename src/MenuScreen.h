@@ -2,10 +2,11 @@
 #pragma once
 
 #include "Screen.h"
-#include <SFML/Graphics.hpp>;
+#include <SFML/Graphics.hpp>
 //#include "Menu.h"
 #include <filesystem.h>
 #include <iostream>
+#include "Context.h"
 
 #define MAX_NUMBER_OF_ITEMS 3
 
@@ -16,8 +17,8 @@ enum MenuState { MAIN_MENU, OPTIONS_MENU };
 class MenuScreen : public Screen {
 public:
 	bool isActive[2];
-	bool currentState;
-	//MenuState getCurrentState() { return currentState; }
+	MenuState currentState;
+	MenuState getCurrentState() { return currentState; }
 	
 
 	//Get the window width and height
@@ -25,14 +26,13 @@ public:
 
 	int GetPressedItem() { return selectedItemIndex; }
 
-    MenuScreen:: MenuScreen(float width, float height){
+    MenuScreen(float width, float height){
          
-		isActive[0] = false;
+		isActive[0] = true;
 		isActive[1] = true;
 
 		triangleY = 0.325;
-		currentState = false;
-		//setCurrentState(MAIN_MENU); // Initialize the current state to the main menu
+		currentState = MAIN_MENU;	// Initialize the current state to the main menu
 		loadResources();
 
 		rectangulo.setPosition(0, 0);
@@ -131,10 +131,10 @@ public:
 		optionsMenu[2].setPosition(width / 2 * 0.17, rectangulo.getSize().y * 0.64);
     }
 
-	void MenuScreen::draw(sf::RenderWindow& window)
+	void draw(sf::RenderWindow& window)
 	{
 		window.draw(background);
-		if (!currentState) {
+		if (currentState == MAIN_MENU) {
 			window.draw(Title);
 			window.draw(selectorTriangle);
 			Title.setString("Forgotten Meadows");
@@ -143,7 +143,7 @@ public:
 				window.draw(menu[i]);
 			}
 		}
-		else if (currentState) {
+		else if (currentState == OPTIONS_MENU) {
 			// Chage the title of the menu to "Options"
 			Title.setString("Options");
 			window.draw(Title);
@@ -158,9 +158,9 @@ public:
 		}
 	}
 
-	void MenuScreen::MoveUp()
+	void MoveUp()
 	{
-		if (!currentState) {
+		if (currentState == MAIN_MENU) {
 			if (selectedItemIndex - 1 >= 0) {
 				menu[selectedItemIndex].setFillColor(sf::Color(88, 98, 115));
 				selectedItemIndex--;
@@ -171,7 +171,7 @@ public:
 				selectorTriangle.setPosition(getWindowWidth() * 0.12, rectangulo.getSize().y * triangleY);
 			}
 		}
-		else if (currentState) {
+		else if (currentState == OPTIONS_MENU) {
 			if (selectedItemIndex - 1 >= 0) {
 				optionsMenu[selectedItemIndex].setFillColor(sf::Color(88, 98, 115));
 				selectedItemIndex--;
@@ -184,7 +184,7 @@ public:
 		}
 	}
 
-	void MenuScreen::MoveDown()
+	void MoveDown()
 	{
 		if (!currentState) {
 			if (selectedItemIndex + 1 < MAX_NUMBER_OF_ITEMS) {
@@ -210,7 +210,7 @@ public:
 		}
 	}
 
-	bool MenuScreen::loadResources() {
+	bool loadResources() {
 		bool success = true;
 		success &= backgroundTexture.loadFromFile(FileSystem::getPath("resources/menu/images/Menu.png"));
 		success &= titleFont.loadFromFile(FileSystem::getPath("resources/menu/textFonts/Poppins-Regular.ttf"));
@@ -221,12 +221,12 @@ public:
 		return success;
 	}
 
-	void MenuScreen::changeState(bool newState) {
+	void changeState(MenuState newState) {
 		currentState = newState;
 		selectedItemIndex = 0; // Reset the selected item index
 		triangleY = 0.325; // Reset the position of the selector triangle
 
-		if (!currentState) {
+		if (currentState == MAIN_MENU) {
 			// Resete the colors of the main menu items
 			for (int i = 0; i < MAX_NUMBER_OF_OPTIONS_ITEMS; i++) {
 				optionsMenu[i].setFillColor(sf::Color(88, 98, 115)); // Color not selected
@@ -236,7 +236,7 @@ public:
 
 			selectorTriangle.setPosition(getWindowWidth() * 0.12, rectangulo.getSize().y * triangleY);
 		}
-		else if (currentState) {
+		else if (currentState == OPTIONS_MENU) {
 			// Reset the colors of the options menu items
 			for (int i = 0; i < MAX_NUMBER_OF_ITEMS; i++) {
 				menu[i].setFillColor(sf::Color(88, 98, 115)); // Color not selected
@@ -248,7 +248,7 @@ public:
 
 	}
 
-	void MenuScreen::toggle(int a) {
+	void toggle(int a) {
 		isActive[a] = !isActive[a];
 		if (isActive[a]) {
 			toggleShape[a].setFillColor(sf::Color(19, 93, 118));
@@ -263,7 +263,7 @@ public:
 
 	}
 
-    int run(sf::RenderWindow& window) override {
+    int run(sf::RenderWindow& window, Context &context) override {
 
 		sf::Event event;
 
@@ -283,30 +283,27 @@ public:
 					break;
 
 				case sf::Keyboard::Return:
-					if (GetPressedItem() == 2 && currentState == true) {
+					if (GetPressedItem() == 2 && getCurrentState() == OPTIONS_MENU) {
 						// Si el ítem "Back" está seleccionado en el menú de opciones, regresa al menú principal
-						currentState = false;
-						selectedItemIndex = 0;
+						changeState(MAIN_MENU);
 					}
 					else {
-						if (!currentState) {
+						if (getCurrentState() == MAIN_MENU) {
 							switch (GetPressedItem()) {
 							case 0:
 								std::cout << "Play button has been pressed" << std::endl;
-								return 1;
 								break;
 							case 1:
 								std::cout << "Option button has been pressed" << std::endl;
-								currentState = true;
-								selectedItemIndex = 0;
+								changeState(OPTIONS_MENU);
 								break;
 							case 2:
 								window.close();
-								return 0;
+								return -1;
 								break;
 							}
 						}
-						else if (currentState) {
+						else if (getCurrentState() == OPTIONS_MENU) {
 							switch (GetPressedItem()) {
 							case 0:
 								toggle(0);
@@ -318,7 +315,7 @@ public:
 								break;
 							case 2:
 								std::cout << "Back button has been pressed" << std::endl;
-								changeState(0);
+								changeState(MAIN_MENU);
 								break;
 							}
 						}
