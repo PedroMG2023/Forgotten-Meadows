@@ -37,13 +37,18 @@ public:
         moonVisible = true;
         sunVisible = false;
 
-        
+        Freecam = false;
 
+        value = false;
 
+        camera = Camera(glm::vec3(64.0f, 2.0f, -1.0f));
 
     }
 
     int run(sf::RenderWindow& window, Context& context) override {
+
+        
+
         // initialize OpenGL
         if (!gladLoadGLLoader((GLADloadproc)sf::Context::getFunction)) {
             std::cout << "Failed to initialize GLAD" << std::endl;
@@ -60,6 +65,7 @@ public:
         //Shader light_shader("light_cube.vs", "light_cube.fs");
         Shader skyboxShader("skybox.vs", "skybox.fs");
 
+        
 
         float skyboxVertices[] = {
             // positions          
@@ -122,15 +128,36 @@ public:
         vector<std::string> faces
         {
 
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.right.png"), // Derecha
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.left.png"), // Izquierda
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.up.png"), // Arriba
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.down.png"), // Abajo
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.front.png"), // Frente
-            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.back.png")  // Atr s
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.right.png"), // right
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.left.png"), // left
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.up.png"), // up
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.down.png"), // down
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.front.png"), // front
+            FileSystem::getPath("resources/skybox images/Scene_-_Root_baseColor.back.png")  // back
 
         };
-        unsigned int cubemapTexture = loadCubemap(faces);
+
+      
+        vector<std::string> faces2
+        {
+
+            FileSystem::getPath("resources/skybox images/yellowcloud_ft.jpg"), 
+            FileSystem::getPath("resources/skybox images/yellowcloud_bk.jpg"), 
+            FileSystem::getPath("resources/skybox images/yellowcloud_up.jpg"), 
+            FileSystem::getPath("resources/skybox images/yellowcloud_dn.jpg"), 
+            FileSystem::getPath("resources/skybox images/yellowcloud_rt.jpg"), 
+            FileSystem::getPath("resources/skybox images/yellowcloud_lf.jpg")  
+
+        };
+
+        unsigned int cubemapTexture;
+
+        if (!context.Sunset) {
+            cubemapTexture = loadCubemap(faces, true);
+        }
+        else {
+            cubemapTexture = loadCubemap(faces2, false);
+        }
 
         // shader configuration
 
@@ -219,6 +246,31 @@ public:
         sf::Clock clock;
 
         while (true) {
+            
+
+            if (context.Sunset) {
+                moonVisible = false;
+                sunVisible = true;
+            }
+            else {
+                moonVisible = true;
+                sunVisible = false;
+            }
+
+            if (context.Freecam) {
+                Freecam = true;
+                value = true;
+
+            }
+            else {
+                Freecam = false;
+            }
+
+            if (!Freecam && value) {
+                camera.Position = glm::vec3(64.0f, 2.0f, -1.0f);
+                value = false;
+            }
+            
 
             // per-frame time logic
             float currentFrame = static_cast<float>(clock.getElapsedTime().asSeconds());
@@ -352,12 +404,12 @@ public:
             if (flashlightOn) {
                 ourShader.setVec3("spotLight.position", camera.Position);
                 ourShader.setVec3("spotLight.direction", camera.Front);
-                ourShader.setVec3("spotLight.ambient", 0.1f, 0.1f, 0.1f);
+                ourShader.setVec3("spotLight.ambient", 0.5f, 0.5f, 0.5f);
                 ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
                 ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
                 ourShader.setFloat("spotLight.constant", 1.0f);
-                ourShader.setFloat("spotLight.linear", 0.09f);
-                ourShader.setFloat("spotLight.quadratic", 0.032f);
+                ourShader.setFloat("spotLight.linear", 0.06286f);
+                ourShader.setFloat("spotLight.quadratic", 0.01429f);
                 ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
                 ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
             }
@@ -465,7 +517,7 @@ public:
                 if (event.type == sf::Event::MouseWheelScrolled)
                     scroll_callback(window, event.mouseWheelScroll.delta, 0);
 
-                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::W) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S) && !sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                if ((!sf::Keyboard::isKeyPressed(sf::Keyboard::W) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S) && !sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !sf::Keyboard::isKeyPressed(sf::Keyboard::D)) && !Freecam )
                 {
                     sound_steps.play();
                 }
@@ -527,7 +579,7 @@ public:
 
     void processInput(sf::Window& window, const Model& model, const Model& model2)
     {
-        
+        /*
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::M)) {
             moonVisible = true;
             sunVisible = false;
@@ -536,8 +588,8 @@ public:
             sunVisible = true;
             moonVisible = false;
         }
-
-        if (true) {
+        */
+        if (!Freecam) {
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
                 glm::vec3 front = camera.Front;
@@ -563,6 +615,8 @@ public:
                 if (!CheckCollision(newPos, model, false) && !CheckCollision(newPos, model2, true))
                     camera.Position = newPos;
             }
+            camera.Position.y = 2.0f;
+
 
         }
 
@@ -582,7 +636,6 @@ public:
 
         }
 
-        camera.Position.y = 2.0f;
 
     }
 
@@ -637,7 +690,7 @@ public:
     // +Z (front) 
     // -Z (back)
     // -------------------------------------------------------
-    unsigned int loadCubemap(vector<std::string> faces)
+    unsigned int loadCubemap(vector<std::string> faces, bool val)
     {
         unsigned int textureID;
         glGenTextures(1, &textureID);
@@ -649,7 +702,12 @@ public:
             unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
             if (data)
             {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                if (val) {
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                }
+                else {
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                }
                 stbi_image_free(data);
             }
             else
@@ -686,7 +744,9 @@ private:
     bool moonVisible;
     bool sunVisible;
     
-    
+    bool Freecam;
+
+    bool value;
 
 
 

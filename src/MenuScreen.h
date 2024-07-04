@@ -28,8 +28,8 @@ public:
 
     MenuScreen(float width, float height){
          
-		isActive[0] = true;
-		isActive[1] = true;
+		isActive[0] = false;
+		isActive[1] = false;
 
 		triangleY = 0.325;
 		currentState = MAIN_MENU;	// Initialize the current state to the main menu
@@ -284,17 +284,24 @@ public:
 
 				case sf::Keyboard::Return:
 					if (GetPressedItem() == 2 && getCurrentState() == OPTIONS_MENU) {
-						// Si el ítem "Back" está seleccionado en el menú de opciones, regresa al menú principal
 						changeState(MAIN_MENU);
 					}
 					else {
 						if (getCurrentState() == MAIN_MENU) {
 							switch (GetPressedItem()) {
 							case 0:
-								std::cout << "Play button has been pressed" << std::endl;
+								//std::cout << "Play button has been pressed" << std::endl;
+								if (context.SaveStates) {
+									window.popGLStates();
+								}
+
+								context.Freecam = isActive[0];
+								context.Sunset = isActive[1];
+
+								return 1;
 								break;
 							case 1:
-								std::cout << "Option button has been pressed" << std::endl;
+								//std::cout << "Option button has been pressed" << std::endl;
 								changeState(OPTIONS_MENU);
 								break;
 							case 2:
@@ -307,14 +314,14 @@ public:
 							switch (GetPressedItem()) {
 							case 0:
 								toggle(0);
-								std::cout << "Freecam button has been pressed" << std::endl;
+								//std::cout << "Freecam button has been pressed" << std::endl;
 								break;
 							case 1:
 								toggle(1);
-								std::cout << "Sunset button has been pressed" << std::endl;
+								//std::cout << "Sunset button has been pressed" << std::endl;
 								break;
 							case 2:
-								std::cout << "Back button has been pressed" << std::endl;
+								//std::cout << "Back button has been pressed" << std::endl;
 								changeState(MAIN_MENU);
 								break;
 							}
