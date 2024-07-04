@@ -225,25 +225,49 @@ public:
             return -1;
         }
 
-        sf::Sound sound_ambient;
-        sound_ambient.setBuffer(buffer);
-        sound_ambient.setVolume(25.f);
-        sound_ambient.setLoop(true);
-        sound_ambient.play();
+        sf::Sound sound_ambient_night;
+        sound_ambient_night.setBuffer(buffer);
+        sound_ambient_night.setVolume(0.f);
+        sound_ambient_night.setLoop(true);
+        sound_ambient_night.play();
+
+
+
+        // Audio ambient
+        sf::SoundBuffer buffer2;
+        if (!buffer2.loadFromFile(FileSystem::getPath("resources/audio/sunset_sound_cut.mp3"))) {
+            std::cout << "Failed to load NighttimeForest audio" << std::endl;
+            return -1;
+        }
+
+        sf::Sound sound_ambient_sunset;
+        sound_ambient_sunset.setBuffer(buffer);
+        sound_ambient_sunset.setVolume(0.f);
+        sound_ambient_sunset.setLoop(true);
+        sound_ambient_sunset.play();
 
         //Steps Audio
-        sf::SoundBuffer buffer2;
-        if (!buffer2.loadFromFile(FileSystem::getPath("resources/audio/Grass_Footsteps.mp3"))) {
+        sf::SoundBuffer buffer3;
+        if (!buffer3.loadFromFile(FileSystem::getPath("resources/audio/Grass_Footsteps.mp3"))) {
             std::cout << "Failed to load footsteps audio" << std::endl;
             return -1;
         }
 
         sf::Sound sound_steps;
-        sound_steps.setBuffer(buffer2);
+        sound_steps.setBuffer(buffer3);
         sound_steps.setVolume(40.0f);
         sound_steps.setLoop(true);
 
         sf::Clock clock;
+
+        if (context.Sunset) {
+            sound_ambient_night.setVolume(0.f);
+            sound_ambient_sunset.setVolume(100.f);
+        }
+        else {
+            sound_ambient_sunset.setVolume(0.f);
+            sound_ambient_night.setVolume(25.f);
+        }
 
         while (true) {
             
@@ -748,6 +772,7 @@ private:
 
     bool value;
 
-
+    bool isMusicNightPlaying;
+    bool isMusicSunsetPlaying;
 
 };
