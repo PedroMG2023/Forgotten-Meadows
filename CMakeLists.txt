@@ -59,10 +59,10 @@ endif(WIN32)
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-add_library(STB_IMAGE "src/stb_image.cpp" "src/Context.h" "src/ApplicationVal.h")
+add_library(STB_IMAGE "src/stb_image.cpp" "src/Context.h" )
 set(LIBS ${LIBS} STB_IMAGE)
 
-add_library(GLAD "src/glad.c" "src/Context.h" "src/ApplicationVal.h")
+add_library(GLAD "src/glad.c" "src/Context.h" )
 set(LIBS ${LIBS} GLAD)
 
 
@@ -75,7 +75,7 @@ FetchContent_MakeAvailable(SFML)
 
 
 #[[ Main]]
-add_executable(Main src/Main.cpp "src/Context.h" "src/ApplicationVal.h")
+add_executable(Main src/Main.cpp "src/Context.h")
 target_link_libraries(Main PRIVATE sfml-graphics sfml-audio ${LIBS})
 target_compile_features(Main PRIVATE cxx_std_17)
 
