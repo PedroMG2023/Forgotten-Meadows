@@ -4,7 +4,7 @@
 
 Welcome to our project called **Forgotten meadows**,this project is based on designing a 3D scene of a field that has been abandoned for many years. The fundamental tools of this project were **Opengl** for the entire graphic theme integrated with **C++** as the base code and **Cmake** for easy installation of the project.
 
-### **Intallation**
+### **Installation**
 
 The project is configured with **Cmake** so installing and running it becomes easier.
 
