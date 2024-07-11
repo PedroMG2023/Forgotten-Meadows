@@ -258,6 +258,18 @@ public:
         sound_steps.setVolume(40.0f);
         sound_steps.setLoop(true);
 
+
+        //flashlight audio
+        sf::SoundBuffer buffer4;
+        if (!buffer4.loadFromFile(FileSystem::getPath("resources/audio/Light_Switch.mp3"))) {
+            std::cout << "Failed to load footsteps audio" << std::endl;
+            return -1;
+        }
+
+        sf::Sound sound_flashlight;
+        sound_flashlight.setBuffer(buffer4);
+        sound_flashlight.setVolume(40.0f);
+
         sf::Clock clock;
 
         if (context.Sunset) {
@@ -551,6 +563,11 @@ public:
                 if ((!sf::Keyboard::isKeyPressed(sf::Keyboard::W) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S) && !sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !sf::Keyboard::isKeyPressed(sf::Keyboard::D)) && !Freecam )
                 {
                     sound_steps.play();
+                }
+
+                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::F)))
+                {
+                    sound_flashlight.play();
                 }
             }
 
